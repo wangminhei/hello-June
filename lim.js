@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const puppeteer = require('puppeteer-extra');
+const vanillaPuppeteer = require('puppeteer'); // Ditambahkan untuk mendapatkan executablePath
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 puppeteer.use(StealthPlugin());
@@ -17,7 +18,7 @@ const colors = {
     white: "\x1b[37m",
     bold: "\x1b[1m",
     magenta: "\x1b[35m",
-    blue: "\x1b[34m",
+    blue: "\x1b[34m", 
     gray: "\x1b[90m",
 };
 
@@ -52,7 +53,7 @@ const MODEL_ID = process.env.MODEL_ID || 'blockchain/qwen3-32b';
 const PROFILE_BASE_DIR = path.join(process.cwd(), 'june-profiles');
 const DAILY_INTERVAL_MS = (process.env.DAILY_INTERVAL_HOURS ? Number(process.env.DAILY_INTERVAL_HOURS) : 24) * 60 * 60 * 1000;
 const CONCISE_SYSTEM_PROMPT = "Respond concisely. Max ~60-80 words. Light witty tone. User in Indonesia, crypto expert, USD preference.";
-const ASKS_PATH = process.env.ASKS_PATH || path.join(process.cwd(), 'ask.txt'); 
+const ASKS_PATH = process.env.ASKS_PATH || path.join(process.cwd(), 'ask.txt');
 const PROXIES_PATH = process.env.PROXIES_PATH || path.join(process.cwd(), 'proxies.txt');
 
 function loadCookies() {
@@ -126,7 +127,6 @@ function parseProxy(proxyString) {
     }
 }
 
-// Diperbarui untuk menggunakan ask.txt
 function loadAsksFile() {
     if (!fs.existsSync(ASKS_PATH)) {
         logger.critical(`ask.txt not found at: ${ASKS_PATH}`);
@@ -226,6 +226,7 @@ async function launch(browserDir, proxy, accountIndex) {
     }
 
     const browser = await puppeteer.launch({
+        executablePath: vanillaPuppeteer.executablePath(), // Ditambahkan untuk memperbaiki eror
         headless: true,
         userDataDir: browserDir,
         args,
@@ -630,3 +631,4 @@ async function runAllAccounts(accounts, proxies, N) {
         await dailyCountdown(DAILY_INTERVAL_MS, accounts.length, N);
     }
 })();
+
